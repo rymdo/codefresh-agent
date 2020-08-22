@@ -13,6 +13,7 @@ spec:
         - push
       branchRegex: /.*/gi
       branchRegexInput: regex
+      modifiedFilesGlob: "!ci/**"
       provider: github
       name: app
       context: github
