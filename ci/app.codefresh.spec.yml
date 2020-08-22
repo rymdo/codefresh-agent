@@ -1,0 +1,53 @@
+version: "1.0"
+kind: pipeline
+metadata:
+  name: codefresh-agent/app
+  description: "codefresh-agent cli application"
+  deprecate: {}
+  project: codefresh-agent
+spec:
+  triggers:
+    - type: git
+      repo: rymdo/codefresh-agent
+      events:
+        - push
+      branchRegex: /.*/gi
+      branchRegexInput: regex
+      provider: github
+      name: app
+      context: github
+  contexts: []
+  stages: ["setup", "build", "test"]
+  steps:
+    clone:
+      stage: "setup"
+      title: "Cloning Repository"
+      type: git-clone
+      repo: "${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}"
+      revision: "${{CF_REVISION}}"
+      git: github
+    initialize:
+      stage: "build"
+      title: "Initializing node_modules"
+      type: "freestyle"
+      image: node:alpine
+      working_directory: "${{clone}}"
+      commands:
+        - apk add git
+        - yarn
+    build:
+      stage: "build"
+      title: "Building application"
+      type: "freestyle"
+      image: node:alpine
+      working_directory: "${{clone}}"
+      commands:
+        - yarn build
+    test:
+      stage: "test"
+      title: "Test application"
+      type: "freestyle"
+      image: node:alpine
+      working_directory: "${{clone}}"
+      commands:
+        - yarn test

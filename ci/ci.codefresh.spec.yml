@@ -1,0 +1,45 @@
+version: "1.0"
+kind: pipeline
+metadata:
+  name: codefresh-agent/ci
+  description: "codefresh-agent ci"
+  deprecate: {}
+  project: codefresh-agent
+spec:
+  triggers:
+    - type: git
+      repo: rymdo/codefresh-agent
+      events:
+        - push
+      branchRegex: /.*/gi
+      branchRegexInput: regex
+      modifiedFilesGlob: "ci/**"
+      provider: github
+      name: ci
+      context: github
+  contexts: []
+  stages: ["setup", "update"]
+  steps:
+    clone:
+      stage: "setup"
+      title: "Cloning Repository"
+      type: git-clone
+      repo: "${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}"
+      revision: "${{CF_REVISION}}"
+      git: github
+    ci:
+      stage: "update"
+      title: "Updating CI pipeline"
+      type: "freestyle"
+      image: codefresh/cli
+      working_directory: "${{clone}}"
+      commands:
+        - codefresh replace pipeline -f ci/ci.codefresh.spec.yml
+    app:
+      stage: "update"
+      title: "Updating App pipeline"
+      type: "freestyle"
+      image: codefresh/cli
+      working_directory: "${{clone}}"
+      commands:
+        - codefresh replace pipeline -f ci/app.codefresh.spec.yml
