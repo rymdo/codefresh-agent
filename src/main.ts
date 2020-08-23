@@ -5,7 +5,7 @@ function main() {
   cli.run();
 }
 
-process.on("SIGINT", function () {
+process.on("SIGINT", () => {
   console.log("Caught interrupt signal");
   process.exit();
 });
