@@ -6,9 +6,17 @@ export class Generator {
   generateSpecs(manifest: Manifest): Specs {
     const result: Specs = {};
     for (const templateName of manifest.templates) {
-      const template = this.templates[templateName];
-      result[templateName] = this.engine.renderString(template, manifest.data);
+      const template = this.getTemplate(templateName);
+      result[templateName] = this.generateSpec(template, manifest.data);
     }
     return result;
+  }
+
+  private getTemplate(name: string): string {
+    return this.templates[name];
+  }
+
+  private generateSpec(template: string, data: any): string {
+    return this.engine.renderString(template, data);
   }
 }
