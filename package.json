@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "codefresh-sdk": "^1.9.14",
+    "nunjucks": "^3.2.2",
     "winston": "^3.3.3"
   }
 }
