@@ -13,6 +13,9 @@ export type Manifest = {
   };
   templates: string[];
 };
+export type Manifests = {
+  [name: string]: Manifest;
+};
 
 export type Spec = string;
 export type Specs = {
