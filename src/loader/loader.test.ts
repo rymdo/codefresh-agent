@@ -10,6 +10,14 @@ const testTemplateFiles = {
   [`${testPath}/dir1/template1.njk`]: "dir1-template-1-data",
   [`${testPath}/dir1/template2.njk`]: "dir1-template-2-data",
 };
+const testResult = {
+  [`dir0/template0`]: "dir0-template-0-data",
+  [`dir0/template1`]: "dir0-template-1-data",
+  [`dir0/template2`]: "dir0-template-2-data",
+  [`dir1/template0`]: "dir1-template-0-data",
+  [`dir1/template1`]: "dir1-template-1-data",
+  [`dir1/template2`]: "dir1-template-2-data",
+};
 
 describe("loader", () => {
   let mockFileSystem: FileSystem;
@@ -59,11 +67,13 @@ describe("loader", () => {
       });
       it("should load all templates with correct data", async () => {
         const actualTemplates = await testLoader.loadTemplates(testPath);
-        for (const templateName of Object.keys(actualTemplates)) {
-          expect(actualTemplates[templateName]).toEqual(
-            testTemplateFiles[templateName]
-          );
-        }
+        expect(Object.values(actualTemplates)).toEqual(
+          Object.values(testResult)
+        );
+      });
+      it("should load templates with correct key", async () => {
+        const actualTemplates = await testLoader.loadTemplates(testPath);
+        expect(Object.keys(actualTemplates)).toEqual(Object.keys(testResult));
       });
     });
 

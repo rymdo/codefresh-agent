@@ -9,7 +9,8 @@ export class Loader {
     const templateFiles = await this.findTemplates(path);
     for (const file of templateFiles) {
       const templateData = this.fs.readFileSync(file);
-      result[file] = `${templateData}`;
+      const fileClean = this.cleanFile(path, file);
+      result[fileClean] = `${templateData}`;
     }
     return result;
   }
@@ -23,5 +24,25 @@ export class Loader {
         return resolve(files);
       });
     });
+  }
+
+  private cleanFile(path: string, file: string): string {
+    let result = this.removeBasePath(path, file);
+    result = this.removeFileEnding(result);
+    return result;
+  }
+
+  private removeBasePath(path: string, file: string): string {
+    if (file.indexOf(`${path}/`) === 0) {
+      return file.slice(path.length + 1);
+    }
+    if (file.indexOf(path) === 0) {
+      return file.slice(path.length);
+    }
+    return file;
+  }
+
+  private removeFileEnding(file: string): string {
+    return file.replace(/\.[^/.]+$/, "");
   }
 }
