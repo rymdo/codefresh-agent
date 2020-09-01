@@ -7,8 +7,7 @@ export interface MockTestSetup {
 }
 
 const mockTest1Templates = {
-  "test/base": `
-version: "1.0"
+  "test/base": `version: "1.0"
 kind: pipeline
 metadata:
   name: {{project}}/{{name}}
@@ -24,16 +23,17 @@ spec:
 `,
 };
 const mockTest1ResultSpecs = {
-  "test/base": `
-version: "1.0"
+  "test/base": `version: "1.0"
 kind: pipeline
 metadata:
   name: test-1-project/test-1-name
-  description: "test-1-name"
+  description: test-1-name
   deprecate: {}
   project: test-1-project
   labels:
     name: test-1-name
+    ca_checksum_manifest: ""
+    ca_checksum_template: ""
 spec:
   contexts: []
   stages: []
@@ -54,8 +54,7 @@ export const mockTest1: MockTestSetup = {
 
 export const mockTemplateBase = {
   name: "test/base",
-  template: `
-version: "1.0"
+  template: `version: "1.0"
 kind: pipeline
 metadata:
   name: {{project}}/{{name}}

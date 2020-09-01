@@ -1,24 +1,46 @@
 import { Generator } from "./generator";
 import {
-  mockTemplateBase,
   mockTest1,
   mockTemplates,
   mockManifestNoTemplates,
   mockManifestSingleTemplate,
 } from "./mock/data.mock";
-import { TemplateEngine } from "./types";
+import { TemplateEngine, YamlEngine, ChecksumEngine } from "./types";
+
+import * as YAML from "yaml";
+import * as crypto from "crypto";
 
 describe("generator", () => {
-  const mockEngine: TemplateEngine = { renderString: () => "" };
+  const mockBasicSpecYaml = "metadata:\n";
+
+  const mockEngine: TemplateEngine = { renderString: () => mockBasicSpecYaml };
+  const mockYaml: YamlEngine = {
+    parse: (str) => YAML.parse(str),
+    stringify: (value) => YAML.stringify(value),
+  };
+  const mockChecksum: ChecksumEngine = {
+    sha1: (value) => {
+      const generator = crypto.createHash("sha1");
+      generator.update(value);
+      return generator.digest("hex");
+    },
+  };
 
   it("should be created", () => {
-    expect(new Generator(mockEngine, mockTest1.templates)).toBeDefined();
+    expect(
+      new Generator(mockEngine, mockYaml, mockChecksum, mockTest1.templates)
+    ).toBeDefined();
   });
 
   describe("when created", () => {
     let testGenerator: Generator;
     beforeEach(() => {
-      testGenerator = new Generator(mockEngine, mockTemplates);
+      testGenerator = new Generator(
+        mockEngine,
+        mockYaml,
+        mockChecksum,
+        mockTemplates
+      );
     });
 
     describe("with manifest with no templates", () => {
@@ -43,10 +65,13 @@ describe("generator", () => {
           actualTemplates.push(template);
           return "";
         };
-        testGenerator.generateSpecs({
-          data: mockTest1.manifest.data,
-          templates: mockTest1.manifest.templates,
-        });
+        try {
+          testGenerator.generateSpecs({
+            data: mockTest1.manifest.data,
+            templates: mockTest1.manifest.templates,
+          });
+        } catch (err) {}
+
         expect(actualTemplates).toEqual(expectedTemplates);
       });
 
@@ -57,13 +82,16 @@ describe("generator", () => {
           actualData = data;
           return "";
         };
-        testGenerator.generateSpecs({
-          data: mockTest1.manifest.data,
-          templates: mockTest1.manifest.templates,
-        });
+        try {
+          testGenerator.generateSpecs({
+            data: mockTest1.manifest.data,
+            templates: mockTest1.manifest.templates,
+          });
+        } catch (err) {}
         expect(actualData).toEqual(expectedData);
       });
-      it("should result in correct output", () => {
+
+      it("should result in valid yaml", () => {
         let counter = 0;
         mockEngine.renderString = (template, data) => {
           return Object.values(mockTest1.resultSpecs)[counter++];
@@ -72,7 +100,28 @@ describe("generator", () => {
           data: mockTest1.manifest.data,
           templates: mockTest1.manifest.templates,
         });
-        expect(result).toEqual(mockTest1.resultSpecs);
+        for (const spec of Object.values(result)) {
+          expect(YAML.parse(spec)).toBeTruthy();
+        }
+      });
+
+      it("should add checksums to metadata/labels", () => {
+        let counter = 0;
+        mockEngine.renderString = (template, data) => {
+          return Object.values(mockTest1.resultSpecs)[counter++];
+        };
+        const result = testGenerator.generateSpecs({
+          data: mockTest1.manifest.data,
+          templates: mockTest1.manifest.templates,
+        });
+
+        for (const spec of Object.values(result)) {
+          const specParsed = YAML.parse(spec);
+          expect(specParsed.metadata).toBeDefined();
+          expect(specParsed.metadata.labels).toBeDefined();
+          expect(specParsed.metadata.labels.ca_checksum_manifest).toBeDefined();
+          expect(specParsed.metadata.labels.ca_checksum_template).toBeDefined();
+        }
       });
     });
   });
