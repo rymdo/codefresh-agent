@@ -177,18 +177,6 @@ describe("codefresh", () => {
           }
           return [];
         };
-        mockLogger.info = (msg) => {
-          console.log(msg);
-        };
-        mockLogger.debug = (msg) => {
-          console.log(msg);
-        };
-        mockLogger.warning = (msg) => {
-          console.log(msg);
-        };
-        mockLogger.error = (msg) => {
-          console.log(msg);
-        };
       });
 
       it("should update pipelines with changed manifest checksum", async () => {
