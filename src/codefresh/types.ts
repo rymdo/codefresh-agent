@@ -14,8 +14,8 @@ export type Spec = {
     description?: string;
     project?: string;
     labels: {
-      caChecksumManifest: string;
-      caChecksumTemplate: string;
+      checksumManifest: string;
+      checksumTemplate: string;
     };
   };
   spec: {

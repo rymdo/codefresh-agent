@@ -8,8 +8,8 @@ const testP1: Spec = {
   metadata: {
     name: "test.p1",
     labels: {
-      caChecksumManifest: "123",
-      caChecksumTemplate: "123",
+      checksumManifest: "123",
+      checksumTemplate: "123",
     },
   },
   spec: {
@@ -24,8 +24,8 @@ const testP2: Spec = {
   metadata: {
     name: "test.p2",
     labels: {
-      caChecksumManifest: "456",
-      caChecksumTemplate: "456",
+      checksumManifest: "456",
+      checksumTemplate: "456",
     },
   },
   spec: {
@@ -40,8 +40,8 @@ const testP1ModifiedManifest: Spec = {
   metadata: {
     name: "test.p1",
     labels: {
-      caChecksumManifest: "9999",
-      caChecksumTemplate: "123",
+      checksumManifest: "9999",
+      checksumTemplate: "123",
     },
   },
   spec: {
@@ -56,8 +56,8 @@ const testP1ModifiedTemplate: Spec = {
   metadata: {
     name: "test.p1",
     labels: {
-      caChecksumManifest: "123",
-      caChecksumTemplate: "8888",
+      checksumManifest: "123",
+      checksumTemplate: "8888",
     },
   },
   spec: {

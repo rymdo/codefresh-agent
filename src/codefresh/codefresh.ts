@@ -90,8 +90,8 @@ export class Codefresh {
     spec: Spec
   ): boolean {
     return (
-      existingPipeline.metadata.labels.caChecksumManifest !==
-      spec.metadata.labels.caChecksumManifest
+      existingPipeline.metadata.labels.checksumManifest !==
+      spec.metadata.labels.checksumManifest
     );
   }
 
@@ -100,8 +100,8 @@ export class Codefresh {
     spec: Spec
   ): boolean {
     return (
-      existingPipeline.metadata.labels.caChecksumTemplate !==
-      spec.metadata.labels.caChecksumTemplate
+      existingPipeline.metadata.labels.checksumTemplate !==
+      spec.metadata.labels.checksumTemplate
     );
   }
 
@@ -197,26 +197,26 @@ export class Codefresh {
       return false;
     }
     if (
-      !data.metadata.labels.caChecksumManifest ||
-      !(typeof data.metadata.labels.caChecksumManifest === "string")
+      !data.metadata.labels.checksumManifest ||
+      !(typeof data.metadata.labels.checksumManifest === "string")
     ) {
       this.logger.debug(
         `${
           this.logger.namespace
-        }: isSpec - data.metadata.labels.caChecksumManifest is wrong type. Expected: 'string' Actual: '${typeof data
-          .metadata.labels.caChecksumManifest}'`
+        }: isSpec - data.metadata.labels.checksumManifest is wrong type. Expected: 'string' Actual: '${typeof data
+          .metadata.labels.checksumManifest}'`
       );
       return false;
     }
     if (
-      !data.metadata.labels.caChecksumTemplate ||
-      !(typeof data.metadata.labels.caChecksumTemplate === "string")
+      !data.metadata.labels.checksumTemplate ||
+      !(typeof data.metadata.labels.checksumTemplate === "string")
     ) {
       this.logger.debug(
         `${
           this.logger.namespace
-        }: isSpec - data.metadata.labels.caChecksumTemplate is wrong type. Expected: 'string' Actual: '${typeof data
-          .metadata.labels.caChecksumTemplate}'`
+        }: isSpec - data.metadata.labels.checksumTemplate is wrong type. Expected: 'string' Actual: '${typeof data
+          .metadata.labels.checksumTemplate}'`
       );
       return false;
     }
