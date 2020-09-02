@@ -6,14 +6,13 @@ export class SpecGenerator {
   constructor(
     private logger: Logger,
     private templater: TemplateEngine,
-    private yaml: YamlEngine,
-    private templates: Template[]
+    private yaml: YamlEngine
   ) {}
 
-  generateSpecs(manifest: Manifest): Spec[] {
+  generateSpecs(manifest: Manifest, templates: Template[]): Spec[] {
     const specs: Spec[] = [];
     for (const templateInfo of manifest.file.content.templates) {
-      const template = this.getTemplate(templateInfo.name);
+      const template = this.getTemplate(templateInfo.name, templates);
       const spec = this.generateSpec(manifest, template);
       specs.push(spec);
     }
@@ -50,8 +49,8 @@ export class SpecGenerator {
     return result;
   }
 
-  private getTemplate(name: string): Template {
-    for (const template of this.templates) {
+  private getTemplate(name: string, templates: Template[]): Template {
+    for (const template of templates) {
       if (template.name === name) {
         return template;
       }

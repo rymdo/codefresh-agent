@@ -1,8 +1,8 @@
-import { Cli } from "./cli";
+import { Cli } from "./cli/cli";
 
 function main() {
-  const cli = new Cli();
-  cli.run();
+  // const cli = new Cli();
+  // cli.run();
 }
 
 process.on("SIGINT", () => {

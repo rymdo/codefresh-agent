@@ -64,10 +64,7 @@ describe("spec.generator", () => {
     mockLogger = createMockLogger();
     mockTemplater = createMockTemplater();
     mockYaml = createMockYaml();
-    testGenerator = new SpecGenerator(mockLogger, mockTemplater, mockYaml, [
-      testTemplate1,
-      testTemplate2,
-    ]);
+    testGenerator = new SpecGenerator(mockLogger, mockTemplater, mockYaml);
   });
 
   describe("on generateSpec", () => {
@@ -132,7 +129,10 @@ describe("spec.generator", () => {
 
   describe("on generateSpecs", () => {
     it("should generate 1 spec per template", () => {
-      const specs = testGenerator.generateSpecs(testManifest1);
+      const specs = testGenerator.generateSpecs(testManifest1, [
+        testTemplate1,
+        testTemplate2,
+      ]);
       expect(specs.length).toEqual(testManifest1.file.content.templates.length);
     });
   });
