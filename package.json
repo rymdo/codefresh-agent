@@ -8,7 +8,9 @@
   "scripts": {
     "lint": "pretty-quick --staged && lint-staged",
     "build": "tsc",
-    "test": "jest"
+    "test:local": "jest",
+    "test:ci": "node --expose-gc ./node_modules/.bin/jest --ci -w=1 --logHeapUsage",
+    "test": "if [ \"${CI}\" ]; then yarn test:ci ; else yarn test:local ; fi"
   },
   "husky": {
     "hooks": {
