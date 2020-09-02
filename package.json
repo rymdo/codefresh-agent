@@ -10,7 +10,8 @@
     "build": "tsc",
     "test:local": "jest",
     "test:ci": "node --expose-gc ./node_modules/.bin/jest --ci -w=1 --logHeapUsage",
-    "test": "if [ \"${CI}\" ]; then yarn test:ci ; else yarn test:local ; fi"
+    "test": "if [ \"${CI}\" ]; then yarn test:ci ; else yarn test:local ; fi",
+    "start": "run-s build test && node build/main.js"
   },
   "husky": {
     "hooks": {
@@ -24,6 +25,7 @@
     "@babel/core": "^7.11.4",
     "@babel/preset-env": "^7.11.0",
     "@babel/preset-typescript": "^7.10.4",
+    "@types/glob": "^7.1.3",
     "@types/jest": "^26.0.10",
     "@types/node": "^14.6.0",
     "@types/nunjucks": "^3.1.3",

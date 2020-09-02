@@ -22,18 +22,18 @@ export class Cli {
     await this.updatePipelines(specs);
   }
 
-  private async updatePipelines(specs: Spec[]): Promise<void> {
+  private async createPipelines(specs: Spec[]): Promise<void> {
     this.logger.info(
       `${this.logger.namespace}: Creating pipelines from ${specs.length} spec files`
     );
-    return this.codefresh.updatePipelines(specs);
+    return this.codefresh.createPipelines(specs);
   }
 
-  private async createPipelines(specs: Spec[]): Promise<void> {
+  private async updatePipelines(specs: Spec[]): Promise<void> {
     this.logger.info(
       `${this.logger.namespace}: Updating pipelines from ${specs.length} spec files`
     );
-    return this.codefresh.createPipelines(specs);
+    return this.codefresh.updatePipelines(specs);
   }
 
   private async getManifests(parameters: CliParameters): Promise<Manifest[]> {
@@ -45,7 +45,7 @@ export class Cli {
 
   private async getTemplates(parameters: CliParameters): Promise<Template[]> {
     this.logger.info(
-      `${this.logger.namespace}: Loading templates from ${parameters.manifestsPath}`
+      `${this.logger.namespace}: Loading templates from ${parameters.templatesPath}`
     );
     return this.loader.loadTemplates(parameters.templatesPath);
   }

@@ -107,12 +107,14 @@ export class Codefresh {
 
   private async getPipeline(name: string): Promise<Spec> {
     this.logger.debug(
-      `${this.logger.namespace}: getPipeline - getting '${name}'`
+      `${this.logger.namespace}: getPipeline - getting pipeline '${name}'`
     );
     const result = await this.sdk.pipelines.get({
       name,
     });
-    this.logger.debug(`${this.logger.namespace}: getPipeline - got '${name}'`);
+    this.logger.debug(
+      `${this.logger.namespace}: getPipeline - got pipeline '${name}'`
+    );
     if (this.isSpec(result)) {
       this.logger.debug(
         `${this.logger.namespace}: getPipeline - '${JSON.stringify(result)}'`
