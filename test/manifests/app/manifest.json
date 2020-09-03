@@ -1,0 +1,13 @@
+{
+  "data": {
+    "name": "app-test",
+    "project": "default",
+    "git": {
+      "repo": "org/app-test"
+    },
+    "docker": {
+      "image_name": "org/app-test"
+    }
+  },
+  "templates": [{ "name": "apps/build" }]
+}

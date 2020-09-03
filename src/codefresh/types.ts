@@ -43,7 +43,7 @@ export type Spec = {
       revision?: string;
     };
     stages?: string[];
-    steps: {
+    steps?: {
       [name: string]: {
         stage?: string;
         title?: string;
