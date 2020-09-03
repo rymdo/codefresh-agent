@@ -1,5 +1,10 @@
-import { SDK, Spec } from "./types";
+import { SDK, Spec, SDKProject } from "./types";
 import { Logger } from "../types";
+import { TypeCheck } from "../tools/typecheck";
+
+export const PROJECT_NOT_FOUND_ERROR = "PROJECT_NOT_FOUND_ERROR";
+export const PROJECT_ALREADY_EXISTS = "PROJECT_ALREADY_EXISTS";
+export const PROJECT_MALFORMED_ERROR = "PROJECT_MALFORMED_ERROR";
 
 export const PIPELINE_NOT_FOUND_ERROR = "PIPELINE_NOT_FOUND_ERROR";
 export const PIPELINE_SPEC_MALFORMED_ERROR = "PIPELINE_SPEC_MALFORMED_ERROR";
@@ -19,12 +24,23 @@ export class Codefresh {
     }
   }
 
+  async createProject(spec: Spec): Promise<void> {
+    const { project } = spec.metadata;
+    if (await this.projectExists(project)) {
+      this.logger.debug(
+        `${this.logger.namespace}: project '${project}' already created`
+      );
+      return;
+    }
+    await this.sdk.projects.create(project);
+    this.logger.info(`${this.logger.namespace}: project '${project}' created`);
+  }
+
   async createPipeline(spec: Spec): Promise<void> {
     const { name } = spec.metadata;
-    this.logger.debug(`${this.logger.namespace}: createPipeline - '${name}' `);
     if (await this.pipelineExists(name)) {
-      this.logger.info(
-        `${this.logger.namespace}: pipeline '${name}' already exists created`
+      this.logger.debug(
+        `${this.logger.namespace}: pipeline '${name}' already created`
       );
       return;
     }
@@ -34,8 +50,6 @@ export class Codefresh {
 
   async updatePipeline(spec: Spec): Promise<void> {
     const { name } = spec.metadata;
-    this.logger.debug(`${this.logger.namespace}: updatePipeline - '${name}' `);
-
     if (!(await this.pipelineExists(name))) {
       this.logger.error(
         `${this.logger.namespace}: updatePipeline - pipeline '${name}' does not exists`
@@ -63,16 +77,28 @@ export class Codefresh {
     );
   }
 
+  private async projectExists(name: string): Promise<boolean> {
+    try {
+      await this.getProject(name);
+      return true;
+    } catch (err) {
+      if (this.isProjectNotFoundError(err)) {
+        return false;
+      }
+      throw err;
+    }
+  }
+
   private async pipelineExists(name: string): Promise<boolean> {
     try {
       await this.getPipeline(name);
+      return true;
     } catch (err) {
       if (this.isErrorPipelineNotFound(err)) {
         return false;
       }
       throw err;
     }
-    return true;
   }
 
   private hasChecksumManifestChanged(
@@ -93,6 +119,27 @@ export class Codefresh {
       existingPipeline.metadata.labels.checksumTemplate !==
       spec.metadata.labels.checksumTemplate
     );
+  }
+
+  private async getProject(name: string): Promise<SDKProject> {
+    this.logger.debug(
+      `${this.logger.namespace}: getProject - getting project '${name}'`
+    );
+    let result: any;
+    try {
+      result = await this.sdk.projects.get({
+        name,
+      });
+    } catch (err) {
+      if (this.isSDKProjectNotFoundError(err)) {
+        throw new Error(PROJECT_NOT_FOUND_ERROR);
+      }
+      throw err;
+    }
+    if (!this.isSDKProject(result)) {
+      throw new Error(PROJECT_MALFORMED_ERROR);
+    }
+    return result;
   }
 
   private async getPipeline(name: string): Promise<Spec> {
@@ -161,8 +208,103 @@ export class Codefresh {
     return true;
   }
 
+  private isSDKProject(data: any): data is SDKProject {
+    if (!data) {
+      this.logDebugTypeError(this.isSDKProject.name, "data", "object{}", data);
+      return false;
+    }
+    if (!TypeCheck.isString(data.id)) {
+      this.logDebugTypeError(
+        this.isSDKProject.name,
+        "data.id",
+        "string",
+        data.id
+      );
+      return false;
+    }
+    if (!TypeCheck.isString(data.projectName)) {
+      this.logDebugTypeError(
+        this.isSDKProject.name,
+        "data.projectName",
+        "string",
+        data.projectName
+      );
+      return false;
+    }
+    if (data.tags && !TypeCheck.isListOfStrings(data.tags)) {
+      this.logDebugTypeError(
+        this.isSDKProject.name,
+        "data.tags",
+        "string[]",
+        data.tags
+      );
+      return false;
+    }
+    if (!TypeCheck.isKeyValueObjectList(data.variables)) {
+      this.logDebugTypeError(
+        this.isSDKProject.name,
+        "data.variables",
+        "{key: string; value: string}[]",
+        data.variables
+      );
+      return false;
+    }
+    if (!TypeCheck.isBoolean(data.favorite)) {
+      this.logDebugTypeError(
+        this.isSDKProject.name,
+        "data.favorite",
+        "boolean",
+        data.favorite
+      );
+      return false;
+    }
+    if (!TypeCheck.isNumber(data.pipelinesNumber)) {
+      this.logDebugTypeError(
+        this.isSDKProject.name,
+        "data.pipelinesNumber",
+        "number",
+        data.pipelinesNumber
+      );
+      return false;
+    }
+    if (!TypeCheck.isString(data.updatedAt)) {
+      this.logDebugTypeError(
+        this.isSDKProject.name,
+        "data.updatedAt",
+        "number",
+        data.updatedAt
+      );
+      return false;
+    }
+    return true;
+  }
+
+  private isProjectNotFoundError(err: Error): boolean {
+    return err.toString() === `Error: ${PROJECT_NOT_FOUND_ERROR}`;
+  }
+
   private isErrorPipelineNotFound(err: Error): boolean {
     return err.toString() === `Error: ${PIPELINE_NOT_FOUND_ERROR}`;
+  }
+
+  private isSDKProjectNotFoundError(err: any): boolean {
+    if (!err.name || !err.message) {
+      return false;
+    }
+    let message: any = {};
+    try {
+      message = JSON.parse(err.message);
+      message = JSON.parse(message);
+    } catch (e) {
+      return false;
+    }
+    if (!message || !message.name) {
+      return false;
+    }
+    if (message.name === "PROJECT_NOT_FOUND_ERROR") {
+      return true;
+    }
+    return false;
   }
 
   private isCFErrorNoPipelineFound(err: any): boolean {
@@ -176,15 +318,29 @@ export class Codefresh {
     } catch (e) {
       return false;
     }
-    if (!message || !message.name || !message.code) {
+    if (!message || !message.name) {
       return false;
     }
     if (message.name === "PIPELINE_NOT_FOUND_ERROR") {
       return true;
     }
-    if (message.code === "4201") {
-      return true;
-    }
     return false;
+  }
+
+  private logDebugTypeError(
+    functionName: string,
+    variableName: string,
+    expectedType: string,
+    variable: any
+  ): void {
+    try {
+      this.logger.debug(
+        `${
+          this.logger.namespace
+        }: ${functionName} - ${variableName} is wrong type. Expected: '${expectedType}' Actual: '${typeof variable}'`
+      );
+    } catch (e) {
+      //
+    }
   }
 }

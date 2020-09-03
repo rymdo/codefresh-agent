@@ -61,6 +61,14 @@ async function createCodefresh(): Promise<Codefresh> {
         return sdk.pipelines.update({ name: `${name}` }, spec);
       },
     },
+    projects: {
+      get: async (name) => {
+        return sdk.projects.get(name);
+      },
+      create: async (name) => {
+        return sdk.projects.create(name);
+      },
+    },
   };
   return new Codefresh(impl, createLogger("codefresh"));
 }

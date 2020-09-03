@@ -1,12 +1,17 @@
-import { Codefresh, PIPELINE_NOT_FOUND_ERROR } from "./codefresh";
-import { SDK, Spec } from "./types";
+import {
+  Codefresh,
+  PIPELINE_NOT_FOUND_ERROR,
+  PROJECT_ALREADY_EXISTS,
+} from "./codefresh";
+import { SDK, Spec, SDKProject } from "./types";
 import { Logger } from "../types";
 
 const testP1: Spec = {
   version: "1.0",
   kind: "pipeline",
   metadata: {
-    name: "test.p1",
+    name: "project-1/test.p1",
+    project: "project-1",
     labels: {
       checksumManifest: "123",
       checksumTemplate: "123",
@@ -22,7 +27,8 @@ const testP2: Spec = {
   version: "1.0",
   kind: "pipeline",
   metadata: {
-    name: "test.p2",
+    name: "project-2/test.p2",
+    project: "project-2",
     labels: {
       checksumManifest: "456",
       checksumTemplate: "456",
@@ -38,7 +44,8 @@ const testP1ModifiedManifest: Spec = {
   version: "1.0",
   kind: "pipeline",
   metadata: {
-    name: "test.p1",
+    name: "project-1/test.p1",
+    project: "project-1",
     labels: {
       checksumManifest: "9999",
       checksumTemplate: "123",
@@ -54,7 +61,8 @@ const testP1ModifiedTemplate: Spec = {
   version: "1.0",
   kind: "pipeline",
   metadata: {
-    name: "test.p1",
+    name: "project-1/test.p1",
+    project: "project-1",
     labels: {
       checksumManifest: "123",
       checksumTemplate: "8888",
@@ -69,16 +77,32 @@ const testP1ModifiedTemplate: Spec = {
 
 const testAllPipelines = [testP1, testP2];
 
+const SDKProjectNotFoundError = JSON.stringify(
+  JSON.stringify({ name: "PROJECT_NOT_FOUND_ERROR" })
+);
+
+const SDKPipelineNotFoundError = JSON.stringify(
+  JSON.stringify({ name: "PIPELINE_NOT_FOUND_ERROR" })
+);
+
 describe("codefresh", () => {
   let mockSdk: SDK;
   let mockLogger: Logger;
   let testCodefresh: Codefresh;
   beforeEach(() => {
     mockSdk = {
+      projects: {
+        get: async () => {
+          throw new Error(SDKProjectNotFoundError);
+        },
+        create: async (name) => {
+          throw new Error(PROJECT_ALREADY_EXISTS);
+        },
+      },
       pipelines: {
         create: async () => {},
         get: async () => {
-          throw new Error("PIPELINE_NOT_FOUND_ERROR");
+          throw new Error(SDKPipelineNotFoundError);
         },
         update: async () => {},
       },
@@ -91,6 +115,41 @@ describe("codefresh", () => {
       warning: () => {},
     };
     testCodefresh = new Codefresh(mockSdk, mockLogger);
+  });
+
+  describe("on createProject", () => {
+    describe("when project exist", () => {
+      it("should not attempt to create project", async () => {
+        let called = false;
+        mockSdk.projects.get = async (): Promise<SDKProject> => {
+          return {
+            id: "123",
+            projectName: "test",
+            variables: [],
+            favorite: false,
+            pipelinesNumber: 1,
+            updatedAt: "2020....",
+          };
+        };
+        mockSdk.projects.create = async (name: string) => {
+          called = true;
+        };
+        await testCodefresh.createProject(testP1);
+        expect(called).toBeFalsy();
+      });
+    });
+
+    describe("when project does not exist", () => {
+      it("should create project with correct name", async () => {
+        const expectedName = testP1.metadata.project;
+        let actualName = "";
+        mockSdk.projects.create = async (name: string) => {
+          actualName = name;
+        };
+        await testCodefresh.createProject(testP1);
+        expect(actualName).toEqual(expectedName);
+      });
+    });
   });
 
   describe("on createPiplelines", () => {

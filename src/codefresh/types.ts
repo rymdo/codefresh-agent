@@ -1,4 +1,18 @@
+export interface SDKProject {
+  id: string;
+  projectName: string;
+  tags?: string[];
+  variables: { key: string; value: string }[];
+  favorite: boolean;
+  pipelinesNumber: number;
+  updatedAt: string;
+}
+
 export interface SDK {
+  projects: {
+    get: (params: { name: string }) => Promise<SDKProject>;
+    create: (name: string) => Promise<void>;
+  };
   pipelines: {
     create: (spec: Spec) => Promise<void>;
     get: (params: { name: string }) => Promise<any>;
@@ -12,7 +26,7 @@ export type Spec = {
   metadata: {
     name: string;
     description?: string;
-    project?: string;
+    project: string;
     labels: {
       checksumManifest: string;
       checksumTemplate: string;
