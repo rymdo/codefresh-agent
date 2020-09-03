@@ -1,4 +1,4 @@
-import { Codefresh } from "./codefresh";
+import { Codefresh, PIPELINE_NOT_FOUND_ERROR } from "./codefresh";
 import { SDK, Spec } from "./types";
 import { Logger } from "../types";
 
@@ -77,7 +77,9 @@ describe("codefresh", () => {
     mockSdk = {
       pipelines: {
         create: async () => {},
-        get: async () => [],
+        get: async () => {
+          throw new Error("PIPELINE_NOT_FOUND_ERROR");
+        },
         update: async () => {},
       },
     };
@@ -112,6 +114,7 @@ describe("codefresh", () => {
             if (pipeline.metadata.name.startsWith(spec.name)) {
               return pipeline;
             }
+            throw new Error(PIPELINE_NOT_FOUND_ERROR);
           }
         };
       });
@@ -153,14 +156,10 @@ describe("codefresh", () => {
 
   describe("on updateSpecs", () => {
     describe("with clean state codefresh state", () => {
-      it("should update no pipelines", async () => {
-        const expectedUpdatedSpecs: string[] = [];
-        const actualUpdatedSpecs: string[] = [];
-        mockSdk.pipelines.update = async ({ name }, spec) => {
-          actualUpdatedSpecs.push(name);
-        };
-        await testCodefresh.updatePipelines(testAllPipelines);
-        expect(actualUpdatedSpecs).toEqual(expectedUpdatedSpecs);
+      it("should throw no pipelines found", async () => {
+        await expect(
+          testCodefresh.updatePipelines(testAllPipelines)
+        ).rejects.toThrowError(PIPELINE_NOT_FOUND_ERROR);
       });
     });
 

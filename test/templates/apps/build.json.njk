@@ -2,8 +2,8 @@
   "version": "1.0",
   "kind": "pipeline",
   "metadata": {
-    "name": "{{ data.project }}/{{ data.name }}",
-    "project": "{{ data.project }}",
+    "name": "{{ project }}/{{ name }}",
+    "project": "{{ project }}",
     "labels": {}
   },
   "spec": {
@@ -11,13 +11,13 @@
       "clone": {
         "type": "git-clone",
         "title": "Cloning Repository",
-        "repo": "{{ data.git.repo }}",
+        "repo": "{{ git.repo }}",
         "git": "bitbucket"
       },
       "build": {
         "type": "build",
         "title": "Building Image",
-        "image_name": "{{ data.docker.image_name }}",
+        "image_name": "{{ docker.image_name }}",
         "working_directory": "{% raw %}${{clone}}{% endraw %}",
         "dockerfile": "Dockerfile",
         "tag": "latest"

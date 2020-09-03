@@ -1,7 +1,8 @@
 import { SDK, Spec } from "./types";
 import { Logger } from "../types";
 
-const ERROR_PIPELINE_NOT_FOUND = "pipeline not found";
+export const PIPELINE_NOT_FOUND_ERROR = "PIPELINE_NOT_FOUND_ERROR";
+export const PIPELINE_SPEC_MALFORMED_ERROR = "PIPELINE_SPEC_MALFORMED_ERROR";
 
 export class Codefresh {
   constructor(private sdk: SDK, private logger: Logger) {}
@@ -21,25 +22,7 @@ export class Codefresh {
   async createPipeline(spec: Spec): Promise<void> {
     const { name } = spec.metadata;
     this.logger.debug(`${this.logger.namespace}: createPipeline - '${name}' `);
-
-    let exists = false;
-    try {
-      await this.getPipeline(name);
-      exists = true;
-    } catch (err) {
-      if (!this.isErrorPipelineNotFound(err)) {
-        this.logger.error(
-          `${this.logger.namespace}: createPipeline - unable to create pipeline '${name}'`
-        );
-        this.logger.error(
-          `${
-            this.logger.namespace
-          }: createPipeline - reason: '${err.toString()}'`
-        );
-        return;
-      }
-    }
-    if (exists) {
+    if (await this.pipelineExists(name)) {
       this.logger.info(
         `${this.logger.namespace}: pipeline '${name}' already exists created`
       );
@@ -49,40 +32,47 @@ export class Codefresh {
     this.logger.info(`${this.logger.namespace}: pipeline '${name}' created`);
   }
 
-  private isErrorPipelineNotFound(err: Error): boolean {
-    return err.toString() === `Error: ${ERROR_PIPELINE_NOT_FOUND}`;
-  }
-
   async updatePipeline(spec: Spec): Promise<void> {
     const { name } = spec.metadata;
     this.logger.debug(`${this.logger.namespace}: updatePipeline - '${name}' `);
-    try {
-      const existingPipeline = await this.getPipeline(name);
-      if (this.hasChecksumManifestChanged(existingPipeline, spec)) {
-        this.logger.info(
-          `${this.logger.namespace}: updatePipeline - manifest checksum has changed for '${name}'`
-        );
-        await this.sdk.pipelines.update({ name }, spec);
-        return;
-      }
-      if (this.hasChecksumTemplateChanged(existingPipeline, spec)) {
-        this.logger.info(
-          `${this.logger.namespace}: updatePipeline - template checksum has changed for '${name}'`
-        );
-        await this.sdk.pipelines.update({ name }, spec);
-        return;
-      }
-      this.logger.info(
-        `${this.logger.namespace}: updatePipeline - no changes to '${name}'`
-      );
-    } catch (err) {
+
+    if (!(await this.pipelineExists(name))) {
       this.logger.error(
-        `${this.logger.namespace}: updatePipeline - unable to update pipeline '${spec.metadata.name}'`
+        `${this.logger.namespace}: updatePipeline - pipeline '${name}' does not exists`
       );
-      this.logger.error(
-        `${this.logger.namespace}: updatePipeline - reason: '${err.toString()}'`
-      );
+      throw new Error(PIPELINE_NOT_FOUND_ERROR);
     }
+
+    const existingPipeline = await this.getPipeline(name);
+    if (this.hasChecksumManifestChanged(existingPipeline, spec)) {
+      this.logger.info(
+        `${this.logger.namespace}: updatePipeline - manifest checksum has changed for '${name}'`
+      );
+      await this.sdk.pipelines.update({ name }, spec);
+      return;
+    }
+    if (this.hasChecksumTemplateChanged(existingPipeline, spec)) {
+      this.logger.info(
+        `${this.logger.namespace}: updatePipeline - template checksum has changed for '${name}'`
+      );
+      await this.sdk.pipelines.update({ name }, spec);
+      return;
+    }
+    this.logger.info(
+      `${this.logger.namespace}: updatePipeline - no changes to '${name}'`
+    );
+  }
+
+  private async pipelineExists(name: string): Promise<boolean> {
+    try {
+      await this.getPipeline(name);
+    } catch (err) {
+      if (this.isErrorPipelineNotFound(err)) {
+        return false;
+      }
+      throw err;
+    }
+    return true;
   }
 
   private hasChecksumManifestChanged(
@@ -109,51 +99,27 @@ export class Codefresh {
     this.logger.debug(
       `${this.logger.namespace}: getPipeline - getting pipeline '${name}'`
     );
-    const result = await this.sdk.pipelines.get({
-      name,
-    });
+    let result: any;
+    try {
+      result = await this.sdk.pipelines.get({
+        name,
+      });
+    } catch (err) {
+      if (this.isCFErrorNoPipelineFound(err)) {
+        throw new Error(PIPELINE_NOT_FOUND_ERROR);
+      }
+      throw err;
+    }
     this.logger.debug(
       `${this.logger.namespace}: getPipeline - got pipeline '${name}'`
     );
-    if (this.isSpec(result)) {
+    if (!this.isSpec(result)) {
       this.logger.debug(
         `${this.logger.namespace}: getPipeline - '${JSON.stringify(result)}'`
       );
-      return result;
+      throw new Error(PIPELINE_SPEC_MALFORMED_ERROR);
     }
-    if (this.isSpecList(result)) {
-      for (const spec of result) {
-        if (spec.metadata.name === name) {
-          this.logger.debug(
-            `${this.logger.namespace}: getPipeline - '${JSON.stringify(spec)}'`
-          );
-          return spec;
-        }
-      }
-    }
-    throw new Error(ERROR_PIPELINE_NOT_FOUND);
-  }
-
-  private isSpecList(data: any): data is Spec[] {
-    if (!data) {
-      this.logger.debug(
-        `${this.logger.namespace}: isSpecList - data is undefined`
-      );
-      return false;
-    }
-    if (!Array.isArray(data)) {
-      this.logger.debug(`${this.logger.namespace}: isSpecList - is not array`);
-      return false;
-    }
-    for (const entry of data) {
-      if (!this.isSpec(entry)) {
-        this.logger.debug(
-          `${this.logger.namespace}: isSpecList - entry is wrong type`
-        );
-        return false;
-      }
-    }
-    return true;
+    return result;
   }
 
   private isSpec(data: any): data is Spec {
@@ -192,36 +158,33 @@ export class Codefresh {
       );
       return false;
     }
-    if (!data.metadata.labels) {
-      this.logger.debug(
-        `${this.logger.namespace}: isSpec - data.metadata.labels is undefined`
-      );
-      return false;
-    }
-    if (
-      !data.metadata.labels.checksumManifest ||
-      !(typeof data.metadata.labels.checksumManifest === "string")
-    ) {
-      this.logger.debug(
-        `${
-          this.logger.namespace
-        }: isSpec - data.metadata.labels.checksumManifest is wrong type. Expected: 'string' Actual: '${typeof data
-          .metadata.labels.checksumManifest}'`
-      );
-      return false;
-    }
-    if (
-      !data.metadata.labels.checksumTemplate ||
-      !(typeof data.metadata.labels.checksumTemplate === "string")
-    ) {
-      this.logger.debug(
-        `${
-          this.logger.namespace
-        }: isSpec - data.metadata.labels.checksumTemplate is wrong type. Expected: 'string' Actual: '${typeof data
-          .metadata.labels.checksumTemplate}'`
-      );
-      return false;
-    }
     return true;
+  }
+
+  private isErrorPipelineNotFound(err: Error): boolean {
+    return err.toString() === `Error: ${PIPELINE_NOT_FOUND_ERROR}`;
+  }
+
+  private isCFErrorNoPipelineFound(err: any): boolean {
+    if (!err.name || !err.message) {
+      return false;
+    }
+    let message: any = {};
+    try {
+      message = JSON.parse(err.message);
+      message = JSON.parse(message);
+    } catch (e) {
+      return false;
+    }
+    if (!message || !message.name || !message.code) {
+      return false;
+    }
+    if (message.name === "PIPELINE_NOT_FOUND_ERROR") {
+      return true;
+    }
+    if (message.code === "4201") {
+      return true;
+    }
+    return false;
   }
 }
