@@ -60,7 +60,7 @@ export class Codefresh {
       await this.sdk.pipelines.update({ name }, spec);
       return;
     }
-    this.logger.info(
+    this.logger.debug(
       `${this.logger.namespace}: updatePipeline - no changes to '${name}'`
     );
   }

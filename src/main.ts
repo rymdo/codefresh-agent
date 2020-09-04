@@ -13,8 +13,9 @@ import { Cli } from "./cli/cli";
 import { SDK } from "./codefresh/types";
 
 const createLogger = (namespace: string): Logger => {
+  const logLevel = process.env.CA_LOG_LEVEL ? process.env.CA_LOG_LEVEL : "info";
   const logger = winston.createLogger({
-    level: "debug",
+    level: logLevel,
     format: winston.format.json(),
     transports: [
       new winston.transports.Console({ format: winston.format.json() }),
