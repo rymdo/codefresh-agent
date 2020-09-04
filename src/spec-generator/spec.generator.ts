@@ -1,5 +1,6 @@
 import { Template, Manifest, TemplateEngine, YamlEngine, Spec } from "./types";
 import { Logger } from "../types";
+import { TypeCheck } from "../tools/typecheck";
 
 export class SpecGenerator {
   constructor(
@@ -38,8 +39,49 @@ export class SpecGenerator {
       );
     }
 
+    if (!result) {
+      this.logDebugTypeError(
+        this.generateSpec.name,
+        "result",
+        "object{}",
+        result
+      );
+      throw new Error(
+        "Spec generated is malformed. Generated spec is unparsable."
+      );
+    }
     if (this.isMissingMetadata(result)) {
-      result = this.addMetadata(result);
+      this.logDebugTypeError(
+        this.generateSpec.name,
+        "result.metadata",
+        "object{}",
+        result.metadata
+      );
+      throw new Error(
+        "Spec generated is malformed. Generated spec is missing 'metadata'."
+      );
+    }
+    if (this.isMissingMetadataName(result)) {
+      this.logDebugTypeError(
+        this.generateSpec.name,
+        "result.metadata.name",
+        "string",
+        result.metadata.name
+      );
+      throw new Error(
+        "Spec generated is malformed. Generated spec is missing 'metadata.name'."
+      );
+    }
+    if (this.isMissingMetadataProject(result)) {
+      this.logDebugTypeError(
+        this.generateSpec.name,
+        "result.metadata.project",
+        "string",
+        result.metadata.project
+      );
+      throw new Error(
+        "Spec generated is malformed. Generated spec is missing 'metadata.project'."
+      );
     }
     if (this.isMissingMetadataLabels(result)) {
       result = this.addMetadataLabels(result);
@@ -64,15 +106,16 @@ export class SpecGenerator {
     return !result.metadata;
   }
 
-  private isMissingMetadataLabels(result: any): boolean {
-    return this.isMissingMetadata(result) || !result.metadata.labels;
+  private isMissingMetadataName(data: any): boolean {
+    return !TypeCheck.isString(data.metadata.name);
   }
 
-  private addMetadata(result: any): any {
-    return {
-      ...result,
-      metadata: {},
-    };
+  private isMissingMetadataProject(data: any): boolean {
+    return !TypeCheck.isString(data.metadata.project);
+  }
+
+  private isMissingMetadataLabels(result: any): boolean {
+    return this.isMissingMetadata(result) || !result.metadata.labels;
   }
 
   private addMetadataLabels(result: any): any {
@@ -101,5 +144,22 @@ export class SpecGenerator {
         },
       },
     };
+  }
+
+  private logDebugTypeError(
+    functionName: string,
+    variableName: string,
+    expectedType: string,
+    variable: any
+  ): void {
+    try {
+      this.logger.debug(
+        `${
+          this.logger.namespace
+        }: ${functionName} - ${variableName} is wrong type. Expected: '${expectedType}' Actual: '${typeof variable}'`
+      );
+    } catch (e) {
+      //
+    }
   }
 }

@@ -72,7 +72,12 @@ describe("spec.generator", () => {
         let actualTemplate = "";
         mockTemplater.renderString = (template) => {
           actualTemplate = template;
-          return "{}";
+          return JSON.stringify({
+            metadata: {
+              name: "test-project/test-name",
+              project: "test-project",
+            },
+          });
         };
         testGenerator.generateSpec(testManifest1, testTemplate1);
         expect(actualTemplate).toEqual(testTemplate1.file.content);
@@ -82,7 +87,12 @@ describe("spec.generator", () => {
         let actualData = "";
         mockTemplater.renderString = (template, data) => {
           actualData = data;
-          return "{}";
+          return JSON.stringify({
+            metadata: {
+              name: "test-project/test-name",
+              project: "test-project",
+            },
+          });
         };
         testGenerator.generateSpec(testManifest1, testTemplate1);
         expect(actualData).toEqual(testManifest1.file.content.data);
@@ -94,7 +104,12 @@ describe("spec.generator", () => {
         let actualTemplate = "";
         mockTemplater.renderString = (template) => {
           actualTemplate = template;
-          return "";
+          return YAML.stringify({
+            metadata: {
+              name: "test-project/test-name",
+              project: "test-project",
+            },
+          });
         };
         testGenerator.generateSpec(testManifest1, testTemplate3);
         expect(actualTemplate).toEqual(testTemplate3.file.content);
@@ -104,7 +119,12 @@ describe("spec.generator", () => {
         let actualData = "";
         mockTemplater.renderString = (template, data) => {
           actualData = data;
-          return "";
+          return YAML.stringify({
+            metadata: {
+              name: "test-project/test-name",
+              project: "test-project",
+            },
+          });
         };
         testGenerator.generateSpec(testManifest1, testTemplate3);
         expect(actualData).toEqual(testManifest1.file.content.data);
@@ -147,7 +167,15 @@ describe("spec.generator", () => {
   }
 
   function createMockTemplater(): TemplateEngine {
-    return { renderString: () => "{}" };
+    return {
+      renderString: () =>
+        JSON.stringify({
+          metadata: {
+            name: "test-project/test-name",
+            project: "test-project",
+          },
+        }),
+    };
   }
 
   function createMockYaml(): YamlEngine {
