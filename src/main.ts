@@ -58,7 +58,10 @@ async function createCodefresh(): Promise<Codefresh> {
         return sdk.pipelines.get({ name: `${name}` });
       },
       update: async ({ name }, spec) => {
-        return sdk.pipelines.update({ name: `${name}` }, spec);
+        return sdk.pipelines.replace(
+          { name: `${name}`, disableRevisionCheck: true },
+          spec
+        );
       },
     },
     projects: {
