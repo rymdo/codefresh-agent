@@ -1,7 +1,7 @@
 {
   "data": {
     "name": "app-test",
-    "project": "default",
+    "project": "example",
     "git": {
       "repo": "org/app-test"
     },

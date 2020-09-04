@@ -144,11 +144,17 @@ export class Codefresh {
       });
     } catch (err) {
       if (this.isSDKProjectNotFoundError(err)) {
+        this.logger.debug(
+          `${this.logger.namespace}: getProject - project not found '${name}'`
+        );
         throw new Error(PROJECT_NOT_FOUND_ERROR);
       }
       throw err;
     }
     if (!this.isSDKProject(result)) {
+      this.logger.error(
+        `${this.logger.namespace}: getProject - project malformed '${name}'`
+      );
       throw new Error(PROJECT_MALFORMED_ERROR);
     }
     return result;
@@ -255,7 +261,11 @@ export class Codefresh {
     if (!message || !message.name) {
       return false;
     }
-    if (message.name === "PROJECT_NOT_FOUND_ERROR") {
+    if (
+      message.code === "1001" &&
+      message.name === "INTERNAL_SERVER_ERROR" &&
+      (message.message as string).startsWith("404")
+    ) {
       return true;
     }
     return false;

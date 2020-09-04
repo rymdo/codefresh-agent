@@ -62,11 +62,11 @@ async function createCodefresh(): Promise<Codefresh> {
       },
     },
     projects: {
-      get: async (name) => {
-        return sdk.projects.get(name);
+      get: async ({ name }) => {
+        return sdk.projects.getByName({ name: `${name}` });
       },
       create: async (name) => {
-        return sdk.projects.create(name);
+        return sdk.projects.create({ projectName: `${name}` });
       },
     },
   };

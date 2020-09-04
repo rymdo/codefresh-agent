@@ -48,7 +48,11 @@ const testP1ModifiedTemplate: SDKPipeline = {
 };
 
 const SDKProjectNotFoundError = JSON.stringify(
-  JSON.stringify({ name: "PROJECT_NOT_FOUND_ERROR" })
+  JSON.stringify({
+    name: "INTERNAL_SERVER_ERROR",
+    code: "1001",
+    message: "404 - {}",
+  })
 );
 
 const SDKPipelineNotFoundError = JSON.stringify(
