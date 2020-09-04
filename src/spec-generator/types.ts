@@ -7,12 +7,8 @@ export interface YamlEngine {
 }
 
 export type TemplateType = "JSON" | "YAML";
-
-export interface TemplateInfo {
+export interface Template {
   name: string;
-}
-
-export interface Template extends TemplateInfo {
   file: {
     type: TemplateType;
     content: string;
@@ -24,7 +20,7 @@ export interface ManifestContent {
   data: {
     [key: string]: any;
   };
-  templates: TemplateInfo[];
+  templates: { name: string; alias: string }[];
 }
 export interface Manifest {
   file: {

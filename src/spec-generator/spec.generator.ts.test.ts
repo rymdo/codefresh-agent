@@ -5,7 +5,7 @@ import { Manifest, TemplateEngine, Template, YamlEngine, Spec } from "./types";
 import * as YAML from "yaml";
 
 const testTemplate1: Template = {
-  name: "template.test1",
+  name: "dir0/test1",
   file: {
     type: "JSON",
     checksum: "123",
@@ -13,7 +13,7 @@ const testTemplate1: Template = {
   },
 };
 const testTemplate2: Template = {
-  name: "template.test2",
+  name: "dir1/test2",
   file: {
     type: "JSON",
     checksum: "567",
@@ -21,7 +21,7 @@ const testTemplate2: Template = {
   },
 };
 const testTemplate3: Template = {
-  name: "template.test3",
+  name: "dir2/test3",
   file: {
     type: "YAML",
     checksum: "981",
@@ -39,19 +39,16 @@ const testManifest1: Manifest = {
       templates: [
         {
           name: testTemplate1.name,
+          alias: "build",
+        },
+        {
+          name: testTemplate1.name,
+          alias: "test",
         },
       ],
     },
   },
 };
-const testSpec1: Spec = {
-  metadata: {
-    labels: {
-      checksumManifest: testManifest1.file.checksum,
-      checksumTemplate: testTemplate1.file.checksum,
-    },
-  },
-} as Spec;
 
 describe("spec.generator", () => {
   let mockLogger: Logger;
@@ -74,12 +71,12 @@ describe("spec.generator", () => {
           actualTemplate = template;
           return JSON.stringify({
             metadata: {
-              name: "test-project/test-name",
-              project: "test-project",
+              name: "test-project-json/test-name-json",
+              project: "test-project-json",
             },
           });
         };
-        testGenerator.generateSpec(testManifest1, testTemplate1);
+        testGenerator.generateSpec(testManifest1, testTemplate1, "test");
         expect(actualTemplate).toEqual(testTemplate1.file.content);
       });
 
@@ -89,12 +86,12 @@ describe("spec.generator", () => {
           actualData = data;
           return JSON.stringify({
             metadata: {
-              name: "test-project/test-name",
-              project: "test-project",
+              name: "test-project-json/test-name-json",
+              project: "test-project-json",
             },
           });
         };
-        testGenerator.generateSpec(testManifest1, testTemplate1);
+        testGenerator.generateSpec(testManifest1, testTemplate1, "test");
         expect(actualData).toEqual(testManifest1.file.content.data);
       });
     });
@@ -106,12 +103,12 @@ describe("spec.generator", () => {
           actualTemplate = template;
           return YAML.stringify({
             metadata: {
-              name: "test-project/test-name",
-              project: "test-project",
+              name: "test-project-yaml/test-name-yaml",
+              project: "test-project-yaml",
             },
           });
         };
-        testGenerator.generateSpec(testManifest1, testTemplate3);
+        testGenerator.generateSpec(testManifest1, testTemplate3, "test");
         expect(actualTemplate).toEqual(testTemplate3.file.content);
       });
 
@@ -121,28 +118,47 @@ describe("spec.generator", () => {
           actualData = data;
           return YAML.stringify({
             metadata: {
-              name: "test-project/test-name",
-              project: "test-project",
+              name: "test-project-yaml/test-name-yaml",
+              project: "test-project-yaml",
             },
           });
         };
-        testGenerator.generateSpec(testManifest1, testTemplate3);
+        testGenerator.generateSpec(testManifest1, testTemplate3, "test");
         expect(actualData).toEqual(testManifest1.file.content.data);
       });
     });
 
     it("should have manifest checksum label in result", () => {
-      const result = testGenerator.generateSpec(testManifest1, testTemplate1);
+      const result = testGenerator.generateSpec(
+        testManifest1,
+        testTemplate1,
+        "test"
+      );
       expect(result.metadata.labels.checksumManifest).toEqual(
         testManifest1.file.checksum
       );
     });
 
     it("should have template checksum label in result", () => {
-      const result = testGenerator.generateSpec(testManifest1, testTemplate1);
+      const result = testGenerator.generateSpec(
+        testManifest1,
+        testTemplate1,
+        "test"
+      );
       expect(result.metadata.labels.checksumTemplate).toEqual(
         testTemplate1.file.checksum
       );
+    });
+
+    it("should have correct metadata name", () => {
+      const result = testGenerator.generateSpec(
+        testManifest1,
+        {
+          ...testTemplate1,
+        },
+        "test"
+      );
+      expect(result.metadata.name).toEqual(`test-project/test-name-test`);
     });
   });
 

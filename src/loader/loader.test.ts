@@ -73,13 +73,13 @@ const testManifestFile0: ManifestContent = {
   data: {
     name: "test0",
   },
-  templates: [{ name: "dir0/template0" }],
+  templates: [{ name: "dir0/template0", alias: "build" }],
 };
 const testManifestFile1: ManifestContent = {
   data: {
     name: "test1",
   },
-  templates: [{ name: "dir0/template1" }],
+  templates: [{ name: "dir0/template1", alias: "build" }],
 };
 const testManifestFiles = {
   [`${testPath}/dir0/manifest.json`]: JSON.stringify(testManifestFile0),

@@ -9,5 +9,8 @@
       "image_name": "org/app-test"
     }
   },
-  "templates": [{ "name": "apps/build" }]
+  "templates": [
+    { "name": "apps/build", "alias": "build" },
+    { "name": "apps/build", "alias": "test" }
+  ]
 }

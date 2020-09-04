@@ -13,13 +13,13 @@ export class SpecGenerator {
     const specs: Spec[] = [];
     for (const templateInfo of manifest.file.content.templates) {
       const template = this.getTemplate(templateInfo.name, templates);
-      const spec = this.generateSpec(manifest, template);
+      const spec = this.generateSpec(manifest, template, templateInfo.alias);
       specs.push(spec);
     }
     return specs;
   }
 
-  generateSpec(manifest: Manifest, template: Template): Spec {
+  generateSpec(manifest: Manifest, template: Template, alias: string): Spec {
     const resultString = this.templater.renderString(
       template.file.content,
       manifest.file.content.data
@@ -87,6 +87,7 @@ export class SpecGenerator {
       result = this.addMetadataLabels(result);
     }
     result = this.addChecksums(result, manifest, template);
+    result = this.appendAliasToName(result, alias);
     return result;
   }
 
@@ -142,6 +143,16 @@ export class SpecGenerator {
           checksumManifest: manifest.file.checksum,
           checksumTemplate: template.file.checksum,
         },
+      },
+    };
+  }
+
+  private appendAliasToName(spec: Spec, alias: string): Spec {
+    return {
+      ...spec,
+      metadata: {
+        ...spec.metadata,
+        name: `${spec.metadata.name}-${alias.replace(/[\W_]+/g, "-")}`,
       },
     };
   }

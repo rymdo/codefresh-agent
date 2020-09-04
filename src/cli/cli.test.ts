@@ -12,7 +12,7 @@ const testManifest1: Manifest = {
       data: {
         name: "test-manifest-1",
       },
-      templates: [{ name: "dir0/test-template-1" }],
+      templates: [{ name: "dir0/test-template-1", alias: "build" }],
     },
   },
 };
@@ -24,8 +24,8 @@ const testManifest2: Manifest = {
         name: "test-manifest-2",
       },
       templates: [
-        { name: "dir0/test-template-1" },
-        { name: "dir0/test-template-2" },
+        { name: "dir0/test-template-1", alias: "build-1" },
+        { name: "dir0/test-template-2", alias: "build-2" },
       ],
     },
   },
