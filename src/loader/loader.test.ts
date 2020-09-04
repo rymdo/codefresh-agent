@@ -1,6 +1,7 @@
 import { Loader } from "./loader";
 import { FileSystem, Glob } from "./types";
 import { Manifest, Template, ManifestContent } from "../spec-generator/types";
+import { getChecksum } from "../tools/checksum";
 
 const testPath = "/test/path";
 const testTemplateFilesYAML = {
@@ -87,13 +88,13 @@ const testManifestFiles = {
 const testManifestResult: Manifest[] = [
   {
     file: {
-      checksum: "123",
+      checksum: getChecksum(testManifestFile0),
       content: testManifestFile0,
     },
   },
   {
     file: {
-      checksum: "123",
+      checksum: getChecksum(testManifestFile1),
       content: testManifestFile1,
     },
   },

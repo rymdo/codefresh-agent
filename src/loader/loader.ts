@@ -1,5 +1,6 @@
 import { FileSystem, Glob } from "./types";
 import { Template, Manifest, ManifestContent } from "../spec-generator/types";
+import { getChecksum } from "../tools/checksum";
 
 export class Loader {
   constructor(private fs: FileSystem, private glob: Glob) {}
@@ -12,7 +13,7 @@ export class Loader {
       if (this.isManifestContent(manifest)) {
         result.push({
           file: {
-            checksum: "123",
+            checksum: getChecksum(manifest),
             content: manifest,
           },
         });
@@ -33,7 +34,7 @@ export class Loader {
       result.push({
         name: fileClean,
         file: {
-          checksum: "123",
+          checksum: getChecksum(`${templateData}`),
           content: `${templateData}`,
           type: "JSON",
         },
@@ -47,7 +48,7 @@ export class Loader {
       result.push({
         name: fileClean,
         file: {
-          checksum: "123",
+          checksum: getChecksum(`${templateData}`),
           content: `${templateData}`,
           type: "YAML",
         },
