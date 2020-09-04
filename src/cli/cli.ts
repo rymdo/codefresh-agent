@@ -3,8 +3,7 @@ import { Loader } from "../loader/loader";
 import { Logger } from "../types";
 import { SpecGenerator } from "../spec-generator/spec.generator";
 import { CliParameters } from "./types";
-import { Manifest, Template } from "../spec-generator/types";
-import { Spec } from "../codefresh/types";
+import { Manifest, Template, Spec } from "../spec-generator/types";
 
 export class Cli {
   constructor(
@@ -18,22 +17,32 @@ export class Cli {
     const manifests = await this.getManifests(parameters);
     const templates = await this.getTemplates(parameters);
     const specs = this.generateSpecs(manifests, templates);
-    await this.createPipelines(specs);
-    await this.updatePipelines(specs);
+    for (const spec of specs) {
+      await this.createProject(spec);
+      await this.createPipeline(spec);
+      await this.updatePipeline(spec);
+    }
   }
 
-  private async createPipelines(specs: Spec[]): Promise<void> {
+  private async createProject(spec: Spec): Promise<void> {
     this.logger.info(
-      `${this.logger.namespace}: Creating pipelines from ${specs.length} spec files`
+      `${this.logger.namespace}: Creating project '${spec.metadata.name}'`
     );
-    return this.codefresh.createPipelines(specs);
+    return this.codefresh.createProject(spec);
   }
 
-  private async updatePipelines(specs: Spec[]): Promise<void> {
+  private async createPipeline(spec: Spec): Promise<void> {
     this.logger.info(
-      `${this.logger.namespace}: Updating pipelines from ${specs.length} spec files`
+      `${this.logger.namespace}: Creating pipeline '${spec.metadata.name}'`
     );
-    return this.codefresh.updatePipelines(specs);
+    return this.codefresh.createPipeline(spec);
+  }
+
+  private async updatePipeline(spec: Spec): Promise<void> {
+    this.logger.info(
+      `${this.logger.namespace}: Updating pipeline '${spec.metadata.name}'`
+    );
+    return this.codefresh.updatePipeline(spec);
   }
 
   private async getManifests(parameters: CliParameters): Promise<Manifest[]> {

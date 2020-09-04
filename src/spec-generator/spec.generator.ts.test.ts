@@ -1,7 +1,6 @@
 import { SpecGenerator } from "./spec.generator";
 import { Logger } from "../types";
-import { Manifest, TemplateEngine, Template, YamlEngine } from "./types";
-import { Spec } from "../codefresh/types";
+import { Manifest, TemplateEngine, Template, YamlEngine, Spec } from "./types";
 
 import * as YAML from "yaml";
 

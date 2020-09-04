@@ -1,12 +1,17 @@
-export interface SDKProject {
-  id: string;
+export type SDKProject = {
   projectName: string;
-  tags?: string[];
-  variables: { key: string; value: string }[];
-  favorite: boolean;
-  pipelinesNumber: number;
-  updatedAt: string;
-}
+} & { [name: string]: any };
+
+export type SDKPipeline = {
+  metadata: {
+    name: string;
+    project: string;
+    labels?: {
+      checksumManifest?: string;
+      checksumTemplate?: string;
+    };
+  } & { [name: string]: any };
+} & { [name: string]: any };
 
 export interface SDK {
   projects: {
@@ -14,57 +19,8 @@ export interface SDK {
     create: (name: string) => Promise<void>;
   };
   pipelines: {
-    create: (spec: Spec) => Promise<void>;
-    get: (params: { name: string }) => Promise<any>;
-    update: (params: { name: string }, spec: Spec) => Promise<void>;
+    create: (spec: SDKPipeline) => Promise<void>;
+    get: (params: { name: string }) => Promise<SDKPipeline>;
+    update: (params: { name: string }, spec: SDKPipeline) => Promise<void>;
   };
 }
-
-export type Spec = {
-  version: "1.0";
-  kind: "pipeline";
-  metadata: {
-    name: string;
-    description?: string;
-    project: string;
-    labels: {
-      checksumManifest: string;
-      checksumTemplate: string;
-    };
-  };
-  spec: {
-    triggers?: {
-      type: string;
-      repo: string;
-      events: string[];
-      branchRegex?: string;
-      branchRegexInput?: string;
-      modifiedFilesGlob?: string;
-      provider: string;
-      name: string;
-      context: string;
-    }[];
-    contexts?: string[];
-    variables?: {
-      key: string;
-      value: string;
-    }[];
-    specTemplate?: {
-      location: string;
-      context: string;
-      repo: string;
-      path: string;
-      revision?: string;
-    };
-    stages?: string[];
-    steps?: {
-      [name: string]: {
-        stage?: string;
-        title?: string;
-      } & {};
-    };
-  };
-};
-export type Specs = {
-  [name: string]: Spec;
-};

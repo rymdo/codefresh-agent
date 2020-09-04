@@ -3,8 +3,7 @@ import { SpecGenerator } from "../spec-generator/spec.generator";
 import { Codefresh } from "../codefresh/codefresh";
 import { Logger } from "../types";
 import { Cli } from "./cli";
-import { Template, Manifest } from "../spec-generator/types";
-import { Spec } from "../codefresh/types";
+import { Template, Manifest, Spec } from "../spec-generator/types";
 
 const testManifest1: Manifest = {
   file: {
@@ -37,7 +36,7 @@ const testTemplate1: Template = {
   file: {
     checksum: "879",
     type: "JSON",
-    content: '{"name": "tmp-1"}',
+    content: "test-template-json",
   },
 };
 const testTemplate2: Template = {
@@ -45,17 +44,45 @@ const testTemplate2: Template = {
   file: {
     checksum: "769",
     type: "YAML",
-    content: "data:\n",
+    content: "test-template-yaml",
   },
 };
 
 const testManifest1Specs: Spec[] = [
-  ({ test_spec_1: "test-1" } as unknown) as Spec,
+  {
+    metadata: {
+      name: `${testManifest1.file.content.data.name}-1`,
+      project: testManifest1.file.content.data.project,
+      labels: {
+        checksumManifest: "123",
+        checksumTemplate: "123",
+      },
+    },
+  },
 ];
 const testManifest2Specs: Spec[] = [
-  ({ test_spec_2: "test-1" } as unknown) as Spec,
-  ({ test_spec_2: "test-2" } as unknown) as Spec,
+  {
+    metadata: {
+      name: `${testManifest2.file.content.data.name}-1`,
+      project: testManifest2.file.content.data.project,
+      labels: {
+        checksumManifest: "123",
+        checksumTemplate: "123",
+      },
+    },
+  },
+  {
+    metadata: {
+      name: `${testManifest2.file.content.data.name}-2`,
+      project: testManifest2.file.content.data.project,
+      labels: {
+        checksumManifest: "123",
+        checksumTemplate: "123",
+      },
+    },
+  },
 ];
+
 const testManifestSpecs: Spec[] = [];
 testManifestSpecs.push(...testManifest1Specs);
 testManifestSpecs.push(...testManifest2Specs);
@@ -127,10 +154,19 @@ describe("cli", () => {
     expect(actualUsedTemplates).toEqual([testTemplate1, testTemplate2]);
   });
 
+  it("should create codefresh projects with generated spec files", async () => {
+    let actualUsedSpecs: Spec[] = [];
+    mockCodefresh.createProject = async (spec) => {
+      actualUsedSpecs.push(spec as Spec);
+    };
+    await testCli.exec({ manifestsPath: "", templatesPath: "" });
+    expect(actualUsedSpecs).toEqual(testManifestSpecs);
+  });
+
   it("should create codefresh pipelines with generated spec files", async () => {
     let actualUsedSpecs: Spec[] = [];
-    mockCodefresh.createPipelines = async (specs) => {
-      actualUsedSpecs.push(...specs);
+    mockCodefresh.createPipeline = async (spec) => {
+      actualUsedSpecs.push(spec as Spec);
     };
     await testCli.exec({ manifestsPath: "", templatesPath: "" });
     expect(actualUsedSpecs).toEqual(testManifestSpecs);
@@ -138,8 +174,8 @@ describe("cli", () => {
 
   it("should update codefresh pipelines with generated spec files", async () => {
     let actualUsedSpecs: Spec[] = [];
-    mockCodefresh.updatePipelines = async (specs) => {
-      actualUsedSpecs.push(...specs);
+    mockCodefresh.updatePipeline = async (spec) => {
+      actualUsedSpecs.push(spec as Spec);
     };
     await testCli.exec({ manifestsPath: "", templatesPath: "" });
     expect(actualUsedSpecs).toEqual(testManifestSpecs);
@@ -184,8 +220,9 @@ describe("cli", () => {
 
   function createMockCodefresh(): Codefresh {
     return ({
-      createPipelines: async () => {},
-      updatePipelines: async () => {},
+      createProject: async () => {},
+      createPipeline: async () => {},
+      updatePipeline: async () => {},
     } as unknown) as Codefresh;
   }
 });

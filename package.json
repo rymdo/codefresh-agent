@@ -12,7 +12,7 @@
     "test:ci": "node --expose-gc ./node_modules/.bin/jest --ci -w=1 --logHeapUsage",
     "test": "if [ \"${CI}\" ]; then yarn test:ci ; else yarn test:local ; fi",
     "start": "run-s build test && node build/main.js",
-    "start:test": "CA_MANIFESTS_PATH=$(pwd)/test/manifests CA_TEMPLATES_PATH=$(pwd)/test/templates yarn start"
+    "start:test": "CA_MANIFESTS_PATH=$(pwd)/example/manifests CA_TEMPLATES_PATH=$(pwd)/example/templates yarn start"
   },
   "husky": {
     "hooks": {

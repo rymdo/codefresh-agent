@@ -1,4 +1,4 @@
-import { SDK, Spec, SDKProject } from "./types";
+import { SDK, SDKProject, SDKPipeline } from "./types";
 import { Logger } from "../types";
 import { TypeCheck } from "../tools/typecheck";
 
@@ -12,19 +12,7 @@ export const PIPELINE_SPEC_MALFORMED_ERROR = "PIPELINE_SPEC_MALFORMED_ERROR";
 export class Codefresh {
   constructor(private sdk: SDK, private logger: Logger) {}
 
-  async createPipelines(specs: Spec[]): Promise<void> {
-    for (const spec of specs) {
-      await this.createPipeline(spec);
-    }
-  }
-
-  async updatePipelines(specs: Spec[]): Promise<void> {
-    for (const spec of specs) {
-      await this.updatePipeline(spec);
-    }
-  }
-
-  async createProject(spec: Spec): Promise<void> {
+  async createProject(spec: SDKPipeline): Promise<void> {
     const { project } = spec.metadata;
     if (await this.projectExists(project)) {
       this.logger.debug(
@@ -36,7 +24,7 @@ export class Codefresh {
     this.logger.info(`${this.logger.namespace}: project '${project}' created`);
   }
 
-  async createPipeline(spec: Spec): Promise<void> {
+  async createPipeline(spec: SDKPipeline): Promise<void> {
     const { name } = spec.metadata;
     if (await this.pipelineExists(name)) {
       this.logger.debug(
@@ -48,7 +36,7 @@ export class Codefresh {
     this.logger.info(`${this.logger.namespace}: pipeline '${name}' created`);
   }
 
-  async updatePipeline(spec: Spec): Promise<void> {
+  async updatePipeline(spec: SDKPipeline): Promise<void> {
     const { name } = spec.metadata;
     if (!(await this.pipelineExists(name))) {
       this.logger.error(
@@ -102,9 +90,21 @@ export class Codefresh {
   }
 
   private hasChecksumManifestChanged(
-    existingPipeline: Spec,
-    spec: Spec
+    existingPipeline: SDKPipeline,
+    spec: SDKPipeline
   ): boolean {
+    if (!existingPipeline.metadata.labels) {
+      return true;
+    }
+    if (!existingPipeline.metadata.labels.checksumManifest) {
+      return true;
+    }
+    if (!spec.metadata.labels) {
+      return true;
+    }
+    if (!spec.metadata.labels.checksumTemplate) {
+      return true;
+    }
     return (
       existingPipeline.metadata.labels.checksumManifest !==
       spec.metadata.labels.checksumManifest
@@ -112,9 +112,21 @@ export class Codefresh {
   }
 
   private hasChecksumTemplateChanged(
-    existingPipeline: Spec,
-    spec: Spec
+    existingPipeline: SDKPipeline,
+    spec: SDKPipeline
   ): boolean {
+    if (!existingPipeline.metadata.labels) {
+      return true;
+    }
+    if (!existingPipeline.metadata.labels.checksumTemplate) {
+      return true;
+    }
+    if (!spec.metadata.labels) {
+      return true;
+    }
+    if (!spec.metadata.labels.checksumTemplate) {
+      return true;
+    }
     return (
       existingPipeline.metadata.labels.checksumTemplate !==
       spec.metadata.labels.checksumTemplate
@@ -142,7 +154,7 @@ export class Codefresh {
     return result;
   }
 
-  private async getPipeline(name: string): Promise<Spec> {
+  private async getPipeline(name: string): Promise<SDKPipeline> {
     this.logger.debug(
       `${this.logger.namespace}: getPipeline - getting pipeline '${name}'`
     );
@@ -152,7 +164,7 @@ export class Codefresh {
         name,
       });
     } catch (err) {
-      if (this.isCFErrorNoPipelineFound(err)) {
+      if (this.isSDKErrorNoPipelineFound(err)) {
         throw new Error(PIPELINE_NOT_FOUND_ERROR);
       }
       throw err;
@@ -160,7 +172,7 @@ export class Codefresh {
     this.logger.debug(
       `${this.logger.namespace}: getPipeline - got pipeline '${name}'`
     );
-    if (!this.isSpec(result)) {
+    if (!this.isSDKPipeline(result)) {
       this.logger.debug(
         `${this.logger.namespace}: getPipeline - '${JSON.stringify(result)}'`
       );
@@ -169,57 +181,9 @@ export class Codefresh {
     return result;
   }
 
-  private isSpec(data: any): data is Spec {
-    if (!data) {
-      this.logger.debug(`${this.logger.namespace}: isSpec - data is undefined`);
-      return false;
-    }
-    if (!data.version || !(typeof data.version === "string")) {
-      this.logger.debug(
-        `${
-          this.logger.namespace
-        }: isSpec - data.version is wrong type. Expected: 'string' Actual: '${typeof data.version}'`
-      );
-      return false;
-    }
-    if (!data.kind || !(typeof data.kind === "string")) {
-      this.logger.debug(
-        `${
-          this.logger.namespace
-        }: isSpec - data.kind is wrong type. Expected: 'string' Actual: '${typeof data.kind}'`
-      );
-      return false;
-    }
-    if (!data.metadata) {
-      this.logger.debug(
-        `${this.logger.namespace}: isSpec - data.metadata is undefined`
-      );
-      return false;
-    }
-    if (!data.metadata.name || !(typeof data.metadata.name === "string")) {
-      this.logger.debug(
-        `${
-          this.logger.namespace
-        }: isSpec - data.metadata.name is wrong type. Expected: 'string' Actual: '${typeof data
-          .metadata.name}'`
-      );
-      return false;
-    }
-    return true;
-  }
-
   private isSDKProject(data: any): data is SDKProject {
     if (!data) {
       this.logDebugTypeError(this.isSDKProject.name, "data", "object{}", data);
-      return false;
-    }
-    if (!TypeCheck.isString(data.id)) {
-      this.logDebugTypeError(
-        this.isSDKProject.name,
-        "data.id",
-        "string",
-        data.id
-      );
       return false;
     }
     if (!TypeCheck.isString(data.projectName)) {
@@ -231,48 +195,38 @@ export class Codefresh {
       );
       return false;
     }
-    if (data.tags && !TypeCheck.isListOfStrings(data.tags)) {
+    return true;
+  }
+
+  private isSDKPipeline(data: any): data is SDKPipeline {
+    if (!data) {
+      this.logDebugTypeError(this.isSDKPipeline.name, "data", "object{}", data);
+      return false;
+    }
+    if (!data.metadata) {
       this.logDebugTypeError(
-        this.isSDKProject.name,
-        "data.tags",
-        "string[]",
-        data.tags
+        this.isSDKPipeline.name,
+        "data.metadata",
+        "object{}",
+        data
       );
       return false;
     }
-    if (!TypeCheck.isKeyValueObjectList(data.variables)) {
+    if (!TypeCheck.isString(data.metadata.name)) {
       this.logDebugTypeError(
-        this.isSDKProject.name,
-        "data.variables",
-        "{key: string; value: string}[]",
-        data.variables
+        this.isSDKPipeline.name,
+        "data.metadata.name",
+        "string",
+        data.metadata.name
       );
       return false;
     }
-    if (!TypeCheck.isBoolean(data.favorite)) {
+    if (!TypeCheck.isString(data.metadata.project)) {
       this.logDebugTypeError(
-        this.isSDKProject.name,
-        "data.favorite",
-        "boolean",
-        data.favorite
-      );
-      return false;
-    }
-    if (!TypeCheck.isNumber(data.pipelinesNumber)) {
-      this.logDebugTypeError(
-        this.isSDKProject.name,
-        "data.pipelinesNumber",
-        "number",
-        data.pipelinesNumber
-      );
-      return false;
-    }
-    if (!TypeCheck.isString(data.updatedAt)) {
-      this.logDebugTypeError(
-        this.isSDKProject.name,
-        "data.updatedAt",
-        "number",
-        data.updatedAt
+        this.isSDKPipeline.name,
+        "data.metadata.project",
+        "string",
+        data.metadata.project
       );
       return false;
     }
@@ -307,7 +261,7 @@ export class Codefresh {
     return false;
   }
 
-  private isCFErrorNoPipelineFound(err: any): boolean {
+  private isSDKErrorNoPipelineFound(err: any): boolean {
     if (!err.name || !err.message) {
       return false;
     }

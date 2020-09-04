@@ -1,5 +1,4 @@
-import { Spec } from "../codefresh/types";
-import { Template, Manifest, TemplateEngine, YamlEngine } from "./types";
+import { Template, Manifest, TemplateEngine, YamlEngine, Spec } from "./types";
 import { Logger } from "../types";
 
 export class SpecGenerator {

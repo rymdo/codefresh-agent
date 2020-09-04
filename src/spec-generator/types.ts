@@ -32,3 +32,14 @@ export interface Manifest {
     checksum: string;
   };
 }
+
+export type Spec = {
+  metadata: {
+    name: string;
+    project: string;
+    labels: {
+      checksumManifest: string;
+      checksumTemplate: string;
+    };
+  } & { [name: string]: any };
+} & { [name: string]: any };
