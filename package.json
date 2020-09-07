@@ -1,6 +1,6 @@
 {
   "name": "codefresh-template-agent",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "main": "index.js",
   "repository": "git@github.com:rymdo/codefresh-template-agent.git",
   "author": "Niklas Wigertz <niklas.wigertz.danielsson@gmail.com>",

@@ -10,12 +10,21 @@ spec:
     - type: git
       repo: rymdo/codefresh-template-agent
       events:
-        - push
+        - push.heads
       branchRegex: /.*/gi
       branchRegexInput: regex
       modifiedFilesGlob: "!ci/**"
       provider: github
-      name: app
+      name: filechange
+      context: github
+    - type: git
+      repo: rymdo/codefresh-template-agent
+      events:
+        - push.tags
+      branchRegex: /.*/gi
+      branchRegexInput: regex
+      provider: github
+      name: version
       context: github
   contexts: []
   stages: ["setup", "build", "test", "publish"]
