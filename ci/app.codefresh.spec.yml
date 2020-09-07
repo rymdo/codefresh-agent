@@ -18,7 +18,7 @@ spec:
       name: app
       context: github
   contexts: []
-  stages: ["setup", "build", "test"]
+  stages: ["setup", "build", "test", "publish"]
   steps:
     clone:
       stage: "setup"
@@ -27,28 +27,55 @@ spec:
       repo: "${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}"
       revision: "${{CF_REVISION}}"
       git: github
-    initialize:
-      stage: "build"
-      title: "Initializing node_modules"
-      type: "freestyle"
-      image: node:alpine
-      working_directory: "${{clone}}"
-      commands:
-        - apk add git
-        - yarn
+
     build:
       stage: "build"
+      type: "build"
+      title: "Building Container"
+      working_directory: "${{clone}}"
+      dockerfile: "Dockerfile"
+      tag: "build"
+      image_name: "rymdo/codefresh-template-agent"
+      disable_push: true
+
+    test_initialize:
+      stage: "test"
+      title: "Initializing node_modules"
+      type: "freestyle"
+      image: ${{build}}
+      working_directory: "${{clone}}"
+      commands:
+        - yarn
+    test_build:
+      stage: "test"
       title: "Building application"
       type: "freestyle"
-      image: node:alpine
+      image: ${{build}}
       working_directory: "${{clone}}"
       commands:
         - yarn build
-    test:
+    test_unit:
       stage: "test"
       title: "Test application"
       type: "freestyle"
-      image: node:alpine
+      image: ${{build}}
       working_directory: "${{clone}}"
       commands:
         - yarn test
+
+    publish:
+      stage: "publish"
+      type: "push"
+      title: "Publishing"
+      candidate: ${{build}}
+      tag: "${{CF_BRANCH}}"
+      registry: "rymdo"
+      image_name: "rymdo/codefresh-template-agent"
+      retry:
+        maxAttempts: 3
+        delay: 5
+      when:
+        condition:
+          any:
+            isMasterBranch: '"${{CF_BRANCH}}" == "master"'
+            isSemVer: 'match("${{CF_BRANCH}}", "^v?[0-9]*\.[0-9]*\.[0-9]*$", false) == true'
