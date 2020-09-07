@@ -8,7 +8,7 @@ metadata:
 spec:
   triggers:
     - type: git
-      repo: rymdo/codefresh-agent
+      repo: rymdo/codefresh-template-agent
       events:
         - push
       branchRegex: /.*/gi

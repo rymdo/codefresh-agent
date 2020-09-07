@@ -1,1 +1,1 @@
-# codefresh-agent
+# codefresh-template-agent

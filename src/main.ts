@@ -13,7 +13,9 @@ import { Cli } from "./cli/cli";
 import { SDK } from "./codefresh/types";
 
 const createLogger = (namespace: string): Logger => {
-  const logLevel = process.env.CA_LOG_LEVEL ? process.env.CA_LOG_LEVEL : "info";
+  const logLevel = process.env.CTA_LOG_LEVEL
+    ? process.env.CTA_LOG_LEVEL
+    : "info";
   const logger = winston.createLogger({
     level: logLevel,
     format: winston.format.json(),
@@ -86,19 +88,19 @@ function createCli(
 }
 
 async function main() {
-  if (!process.env.CA_MANIFESTS_PATH) {
-    throw new Error("Env CA_MANIFESTS_PATH missing");
+  if (!process.env.CTA_MANIFESTS_PATH) {
+    throw new Error("Env CTA_MANIFESTS_PATH missing");
   }
-  if (!process.env.CA_TEMPLATES_PATH) {
-    throw new Error("Env CA_TEMPLATES_PATH missing");
+  if (!process.env.CTA_TEMPLATES_PATH) {
+    throw new Error("Env CTA_TEMPLATES_PATH missing");
   }
   const loader = createLoader();
   const generator = createGenerator();
   const codefresh = await createCodefresh();
   const cli = createCli(loader, generator, codefresh);
   await cli.exec({
-    manifestsPath: process.env.CA_MANIFESTS_PATH,
-    templatesPath: process.env.CA_TEMPLATES_PATH,
+    manifestsPath: process.env.CTA_MANIFESTS_PATH,
+    templatesPath: process.env.CTA_TEMPLATES_PATH,
   });
   process.exit();
 }
