@@ -1,5 +1,7 @@
-FROM node:14-alpine3.12 as builder
-WORKDIR /builder
+ARG BASE_IMAGE=node:14-alpine3.12
+
+FROM ${BASE_IMAGE} as app
+WORKDIR /build
 RUN apk add --no-cache git
 COPY package.json .
 COPY yarn.lock .
@@ -8,13 +10,16 @@ COPY tsconfig.json .
 COPY src ./src
 RUN yarn build
 
-FROM node:14-alpine3.12
-WORKDIR /app
+FROM ${BASE_IMAGE} as node-modules
+WORKDIR /build
 RUN apk add --no-cache git
 COPY package.json .
 COPY yarn.lock .
-RUN yarn --frozen-lockfile --production
-RUN rm -rf package.json yarn.lock
-COPY --from=builder /builder/build .
+RUN yarn --frozen-lockfile --productions
+
+FROM ${BASE_IMAGE}
+WORKDIR /app
+COPY --from=app /build/build .
+COPY --from=node-modules /build/node_modules ./node_modules
 
 CMD [ "node", "main.js" ]
