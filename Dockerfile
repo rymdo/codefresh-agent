@@ -15,10 +15,11 @@ WORKDIR /build
 RUN apk add --no-cache git
 COPY package.json .
 COPY yarn.lock .
-RUN yarn --frozen-lockfile --productions
+RUN yarn --frozen-lockfile --production
 
 FROM ${BASE_IMAGE}
 WORKDIR /app
+RUN apk add --no-cache git
 COPY --from=app /build/build .
 COPY --from=node-modules /build/node_modules ./node_modules
 
