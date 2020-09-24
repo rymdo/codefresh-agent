@@ -53,10 +53,10 @@ const testManifest1Specs: Spec[] = [
     metadata: {
       name: `${testManifest1.file.content.data.name}-1`,
       project: testManifest1.file.content.data.project,
-      labels: {
+      description: JSON.stringify({
         checksumManifest: "123",
         checksumTemplate: "123",
-      },
+      }),
     },
   },
 ];
@@ -65,20 +65,20 @@ const testManifest2Specs: Spec[] = [
     metadata: {
       name: `${testManifest2.file.content.data.name}-1`,
       project: testManifest2.file.content.data.project,
-      labels: {
+      description: JSON.stringify({
         checksumManifest: "123",
         checksumTemplate: "123",
-      },
+      }),
     },
   },
   {
     metadata: {
       name: `${testManifest2.file.content.data.name}-2`,
       project: testManifest2.file.content.data.project,
-      labels: {
+      description: JSON.stringify({
         checksumManifest: "123",
         checksumTemplate: "123",
-      },
+      }),
     },
   },
 ];

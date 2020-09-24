@@ -93,44 +93,50 @@ export class Codefresh {
     existingPipeline: SDKPipeline,
     spec: SDKPipeline
   ): boolean {
-    if (!existingPipeline.metadata.labels) {
+    if (!existingPipeline.metadata.description) {
       return true;
     }
-    if (!existingPipeline.metadata.labels.checksumManifest) {
+    if (!spec.metadata.description) {
       return true;
     }
-    if (!spec.metadata.labels) {
+    try {
+      const existingData = JSON.parse(existingPipeline.metadata.description);
+      if (!existingData.checksumManifest) {
+        return false;
+      }
+      const specData = JSON.parse(spec.metadata.description);
+      if (!specData.checksumManifest) {
+        return false;
+      }
+      return existingData.checksumManifest !== specData.checksumManifest;
+    } catch (err) {
       return true;
     }
-    if (!spec.metadata.labels.checksumTemplate) {
-      return true;
-    }
-    return (
-      existingPipeline.metadata.labels.checksumManifest !==
-      spec.metadata.labels.checksumManifest
-    );
   }
 
   private hasChecksumTemplateChanged(
     existingPipeline: SDKPipeline,
     spec: SDKPipeline
   ): boolean {
-    if (!existingPipeline.metadata.labels) {
+    if (!existingPipeline.metadata.description) {
       return true;
     }
-    if (!existingPipeline.metadata.labels.checksumTemplate) {
+    if (!spec.metadata.description) {
       return true;
     }
-    if (!spec.metadata.labels) {
+    try {
+      const existingData = JSON.parse(existingPipeline.metadata.description);
+      if (!existingData.checksumTemplate) {
+        return false;
+      }
+      const specData = JSON.parse(spec.metadata.description);
+      if (!specData.checksumTemplate) {
+        return false;
+      }
+      return existingData.checksumTemplate !== specData.checksumTemplate;
+    } catch (err) {
       return true;
     }
-    if (!spec.metadata.labels.checksumTemplate) {
-      return true;
-    }
-    return (
-      existingPipeline.metadata.labels.checksumTemplate !==
-      spec.metadata.labels.checksumTemplate
-    );
   }
 
   private async getProject(name: string): Promise<SDKProject> {

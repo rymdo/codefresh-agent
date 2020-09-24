@@ -10,40 +10,40 @@ const testP1: SDKPipeline = {
   metadata: {
     name: "project-1/test.p1",
     project: "project-1",
-    labels: {
+    description: JSON.stringify({
       checksumManifest: "123",
       checksumTemplate: "123",
-    },
+    }),
   },
 };
 const testP2: SDKPipeline = {
   metadata: {
     name: "project-2/test.p2",
     project: "project-2",
-    labels: {
+    description: JSON.stringify({
       checksumManifest: "456",
       checksumTemplate: "456",
-    },
+    }),
   },
 };
 const testP1ModifiedManifest: SDKPipeline = {
   metadata: {
     name: "project-1/test.p1",
     project: "project-1",
-    labels: {
+    description: JSON.stringify({
       checksumManifest: "9999",
       checksumTemplate: "123",
-    },
+    }),
   },
 };
 const testP1ModifiedTemplate: SDKPipeline = {
   metadata: {
     name: "project-1/test.p1",
     project: "project-1",
-    labels: {
+    description: JSON.stringify({
       checksumManifest: "123",
       checksumTemplate: "8888",
-    },
+    }),
   },
 };
 

@@ -83,9 +83,6 @@ export class SpecGenerator {
         "Spec generated is malformed. Generated spec is missing 'metadata.project'."
       );
     }
-    if (this.isMissingMetadataLabels(result)) {
-      result = this.addMetadataLabels(result);
-    }
     result = this.addChecksums(result, manifest, template);
     result = this.appendAliasToName(result, alias);
     return result;
@@ -115,20 +112,6 @@ export class SpecGenerator {
     return !TypeCheck.isString(data.metadata.project);
   }
 
-  private isMissingMetadataLabels(result: any): boolean {
-    return this.isMissingMetadata(result) || !result.metadata.labels;
-  }
-
-  private addMetadataLabels(result: any): any {
-    return {
-      ...result,
-      metadata: {
-        ...result.metadata,
-        labels: {},
-      },
-    };
-  }
-
   private addChecksums(
     result: any,
     manifest: Manifest,
@@ -138,11 +121,10 @@ export class SpecGenerator {
       ...result,
       metadata: {
         ...result.metadata,
-        labels: {
-          ...result.metadata.labels,
+        description: JSON.stringify({
           checksumManifest: manifest.file.checksum,
           checksumTemplate: template.file.checksum,
-        },
+        }),
       },
     };
   }

@@ -134,7 +134,7 @@ describe("spec.generator", () => {
         testTemplate1,
         "test"
       );
-      expect(result.metadata.labels.checksumManifest).toEqual(
+      expect(JSON.parse(result.metadata.description).checksumManifest).toEqual(
         testManifest1.file.checksum
       );
     });
@@ -145,7 +145,7 @@ describe("spec.generator", () => {
         testTemplate1,
         "test"
       );
-      expect(result.metadata.labels.checksumTemplate).toEqual(
+      expect(JSON.parse(result.metadata.description).checksumTemplate).toEqual(
         testTemplate1.file.checksum
       );
     });

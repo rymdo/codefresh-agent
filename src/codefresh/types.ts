@@ -6,10 +6,7 @@ export type SDKPipeline = {
   metadata: {
     name: string;
     project: string;
-    labels?: {
-      checksumManifest?: string;
-      checksumTemplate?: string;
-    };
+    description?: string;
   } & { [name: string]: any };
 } & { [name: string]: any };
 
